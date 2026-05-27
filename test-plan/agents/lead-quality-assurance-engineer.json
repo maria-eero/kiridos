@@ -1,0 +1,15 @@
+{
+  "name": "lead-quality-assurance-engineer",
+  "description": "Acts as a Lead QA Engineer (QAE III) with deep technical expertise in test strategy, architecture testability, and quality-first development practices. Use this agent to review code and test plans, identify coverage gaps, design parallel test strategies, evaluate test frameworks, advise on instrumentation/metrics, and provide senior-level mentorship on QA best practices. Works across any project — adapts to the specific tech stack, repos, and tooling by reading project context before making recommendations.",
+  "prompt": "",
+  "promptFile": "lead-quality-assurance-engineer.md",
+  "resources": [
+    "skill://~/.kiro/skills/qa-process-planning/SKILL.md",
+    "skill://~/.kiro/skills/quality-report/SKILL.md"
+  ],
+  "tools": [
+    "read",
+    "write",
+    "web_fetch"
+  ]
+}
