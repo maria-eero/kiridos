@@ -1,11 +1,11 @@
 ---
 name: qa-process-planning
-description: Use when asked to generate QA process artifacts — test plans, automation plans, or quality process flowcharts — from project descriptions, Figma designs, or tech specs.
+description: Use when asked to generate QA process artifacts — test plans, automation plans, unique IDs for automation, or quality process flowcharts — from project descriptions, Figma designs, or tech specs.
 ---
 
 # QA Process Planning Skill
 
-Generate three QA artifacts from project inputs (tech spec, Figma designs, project description): a quality process flowchart, a test plan, and an automation plan.
+Generate three QA artifacts from project inputs (tech spec, Figma designs, project description): a quality process flowchart, a test plan, and an automation plan (with a companion unique IDs document for E2E automation).
 
 ## Agents
 
@@ -335,6 +335,12 @@ Derive coverage for each layer directly from the tech spec.
 |-------------|-------------|---------------|
 | [screen name] | [buttons, inputs, states] | [test IDs] |
 
+## 6.1 Unique IDs for Automation
+
+All UI element identifiers required for test automation are documented in a separate companion file (see Artifact 3b below). Developers must implement these `testTag` values during each milestone. Automation for a milestone cannot begin until the unique IDs for that milestone's screens are available in the codebase.
+
+→ **[Unique IDs for [Feature Name]](./[feature]-automation-plan-unique-ids.md)**
+
 ## 7. CI/CD Integration
 - **Trigger**: [on PR, nightly, release]
 - **Pipeline**: [describe]
@@ -355,15 +361,57 @@ Derive coverage for each layer directly from the tech spec.
 - Phase the implementation by priority — critical path first
 - Specify the framework and patterns consistent with the existing test codebase
 
+## Artifact 3b: Unique IDs for Automation
+
+Generate a companion document listing all UI element identifiers required for E2E test automation. This file is referenced by the Automation Plan and shared directly with developers so they can implement `testTag` (Android) / `accessibilityIdentifier` (iOS) values during each milestone.
+
+### Template
+
+```markdown
+# Unique IDs for Automation — [Feature Name]
+
+These unique identifiers must be added to the codebase by developers during implementation. They are required for test automation and should be available prior to any automation task. Each ID maps to a specific UI element visible in the Figma designs.
+
+## [Screen Name 1]
+
+| Element | Suggested testTag | Figma Reference |
+| ----- | ----- | ----- |
+| [Element description] | [kebab-case-test-tag] | [Figma frame name] |
+
+## [Screen Name 2]
+
+| Element | Suggested testTag | Figma Reference |
+| ----- | ----- | ----- |
+| [Element description] | [kebab-case-test-tag] | [Figma frame name] |
+
+## [Dialog / Overlay Name]
+
+| Element | Suggested testTag | Figma Reference |
+| ----- | ----- | ----- |
+| [Element description] | [kebab-case-test-tag] | [Figma frame name or *(dynamic state)*] |
+```
+
+### Requirements
+
+- Derive all elements from Figma designs — every interactive element, status indicator, and navigation target that E2E tests need to locate
+- Organize by screen, matching the screen structure used in the test plan and automation plan
+- Use consistent kebab-case naming conventions (e.g., `screen-name-element-description`)
+- Include container elements (rows, banners, dialogs) as well as their child elements (title, subtitle, icon, button)
+- Include elements for dynamic/error states even if they don't appear in static Figma frames (mark as `*(dynamic state — not in static Figma)*`)
+- Map each element to its Figma frame reference for developer traceability
+- Use indexed patterns (e.g., `{index}`) for repeated/list elements
+- Note any elements that depend on unresolved design decisions or API fields
+
 ## Output Format
 
 When invoked, ask the user for the **platform** (Mobile, Web, or Mobile & Web) if not already clear from the documentation provided.
 
-Produce all three artifacts in order using this naming convention:
+Produce all artifacts in order using this naming convention:
 
 1. **`[Feature Name] - [Mobile/Web/Mobile & Web] QA Process Flowchart`** — Mermaid diagram in a code block
 2. **`[Feature Name] - [Mobile/Web/Mobile & Web] QA Test Plan`** — Full markdown document
 3. **`[Feature Name] - [Mobile/Web/Mobile & Web] Automation Plan`** — Full markdown document
+4. **`[Feature Name] - Automation Plan - Unique IDs`** — Companion document listing all testTag identifiers by screen
 
 Each artifact should be self-contained and ready to share with the Engineering team.
 

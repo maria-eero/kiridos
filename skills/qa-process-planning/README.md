@@ -1,6 +1,6 @@
 # QA Process Planning Skill
 
-Generates three QA artifacts from project documentation (tech specs, Figma designs, PRDs).
+Generates QA artifacts from project documentation (tech specs, Figma designs, PRDs).
 
 ## Artifacts
 
@@ -9,12 +9,13 @@ Generates three QA artifacts from project documentation (tech specs, Figma desig
 | 1 | Quality Process Flowchart | Mermaid diagram |
 | 2 | Test Plan (v3.1 template) | Markdown |
 | 3 | Automation Plan | Markdown |
+| 3b | Unique IDs for Automation | Markdown |
 
 ## How It Works
 
 1. Provide project docs (tech spec, Figma, PRD — any combination)
 2. Skill asks clarifying questions and confirms platform (Mobile/Web/Both)
-3. Generates all 3 artifacts using specialized agents (Lead QAE + Lead SDET)
+3. Generates all 4 artifacts using specialized agents (Lead QAE + Lead SDET)
 4. SDM agent reviews for feasibility, resourcing, and risks
 5. Revisions applied → final versions produced
 6. Optional: creates a Jira epic with stories/subtasks derived from the plans
@@ -40,6 +41,8 @@ Please generate the QA process flowchart, test plan, and automation plan.
 **Test Plan** — Follows our v3.1 template. Covers scope, environment, test data, strategy, scenarios mapped to requirements, risks, and sign-off. Applies the full review checklist (hardware, soak, Plus, setup, UX, i18n, ISP, parity, T-mobile).
 
 **Automation Plan** — Scope decisions with justification, strategy by layer (Unit → Integration → API → E2E), Figma-to-test mapping, phased implementation, CI/CD integration, and maintenance strategy.
+
+**Unique IDs** — Companion document listing all `testTag` / `accessibilityIdentifier` values by screen. Shared with developers so they implement element identifiers before automation begins. Organized by screen with Figma frame references for traceability.
 
 ## When to Use
 
