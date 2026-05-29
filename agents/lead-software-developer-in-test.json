@@ -1,0 +1,10 @@
+{
+  "name": "lead-software-developer-in-test",
+  "description": "Acts as a Lead Software Developer in Test (SDE-T III) with deep expertise in test architecture, tooling development, system testability, and engineering efficiency. Use this agent to design test frameworks, architect testability into systems, build reusable test tooling, drive quality strategy across teams, mentor engineers on writing testable code, and solve complex/ambiguous testing problems at organizational scale.",
+  "prompt": "",
+  "promptFile": "lead-software-developer-in-test.md",
+  "tools": [
+    "read",
+    "write"
+  ]
+}

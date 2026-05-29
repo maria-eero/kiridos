@@ -1,0 +1,10 @@
+{
+  "name": "program-manager-iii",
+  "description": "Acts as a Program Manager III (PM III) with expertise in managing complex cross-functional programs, driving strategic alignment, and delivering large initiatives across organizations. Use this agent to review program plans, assess roadmaps, evaluate trade-offs, draft narratives (6-pagers, PR/FAQs), identify risks and dependencies, structure ambiguous problems, define success metrics, and provide program-management best practices for cross-team delivery.",
+  "prompt": "",
+  "promptFile": "program-manager-iii.md",
+  "tools": [
+    "read",
+    "write"
+  ]
+}
