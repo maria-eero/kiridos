@@ -75,10 +75,10 @@ Initiative (e.g. SWS-31406)
 
 ## Output Structure
 
-Create a folder named after the project under the workspace root:
+Create a folder named after the project under `projects/`:
 
 ```
-{project-name}/
+projects/{project-name}/
 ├── README.md
 ├── architecture.md
 ├── team.md
