@@ -7,11 +7,14 @@ Custom Kiro CLI skills and agents for QA automation — bug analysis, sprint rep
 | Skill | Description |
 |-------|-------------|
 | [bug-escape-analysis](skills/bug-escape-analysis/) | Analyzes customer-reported production bugs, categorizes by root cause (O1.x), generates OKR metrics and trend reports |
+| [dev-completed-summary](skills/dev-completed-summary/) | Generates Dev Completed ticket summaries for mobile releases — pulls from Jira and Confluence, outputs a self-contained HTML report with PR status, RC availability, and QA assignees |
 | [oncall-report](skills/oncall-report/) | Generates on-call handoff reports from GitLab pipelines, GitHub PRs, and Jira tickets; publishes to Confluence |
+| [project-setup](skills/project-setup/) | Sets up a new project folder from attached documents, Confluence pages, and Jira tickets; produces organized markdown files covering architecture, team, environments, and processes |
 | [qa-process-planning](skills/qa-process-planning/) | Generates QA process flowchart, test plan, and automation plan from project documentation |
 | [quality-report](skills/quality-report/) | Produces a release readiness report with test coverage, bug metrics, risk assessment, and per-scope QA sign-off |
 | [sprint-bug-health-report](skills/sprint-bug-health-report/) | Sprint defect management report with severity trends, component hotspots, and recommendations; publishes to Confluence |
 | [sprint-readiness-audit](skills/sprint-readiness-audit/) | Audits a new sprint for missing story points, QA assignments, bug metadata, and descriptions |
+| [testrail-cases](skills/testrail-cases/) | Creates test cases in TestRail from a test plan — generates properly formatted cases with steps separated, preconditions, and metadata following team patterns |
 
 ## Agents
 
