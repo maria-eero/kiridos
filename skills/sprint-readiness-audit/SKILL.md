@@ -15,6 +15,10 @@ This skill uses a **three-agent pipeline**:
 2. `lead-quality-assurance-engineer` — audits quality-related fields: QA assignment, bug reason, bug source, and test coverage signals. Flags tickets that will create downstream QA bottlenecks.
 3. `software-developer-manager-iii` — synthesizes findings into a prioritized action plan with ownership assignments and sprint health risk assessment.
 
+<MANDATORY>
+The three-agent assessments (Steps 4, 5, 6) are NOT optional. You MUST run all three agent evaluations using the `subagent` tool BEFORE generating the final report. The report is INCOMPLETE without them. Do NOT skip to the report template after gap detection — the PM Assessment, QA Readiness Assessment, and SDM Action Plan are the core value of this audit, not the gap tables. If you skip them, the report is rejected.
+</MANDATORY>
+
 ## Prerequisites
 
 - **Jira MCP Server**: `mcp-atlassian` configured with access to the target project.
@@ -60,6 +64,8 @@ For each ticket, check the following gaps:
 | **Unassigned Ticket** | No assignee at all | 🟠 Medium — ownership unclear |
 
 ### Step 4: Program Manager Assessment
+
+> ⛔ **STOP** — Do NOT skip to Step 7 (report generation). Steps 4, 5, and 6 MUST be executed using the `subagent` tool with the three agent roles. The gap detection data from Step 3 is the INPUT to these assessments — it is not the final output. Run all three agents now.
 
 The `program-manager-iii` agent reviews the gap data and produces:
 
@@ -116,6 +122,18 @@ Compose the report in this format:
 
 ---
 
+## Program Manager Assessment
+
+[Output from Step 4 — Scope Clarity Score, Delivery Risk, Process Gap Pattern]
+
+---
+
+## QA Readiness Assessment
+
+[Output from Step 5 — QA Coverage Risk with type breakdown, Bug Metadata Health, Testability Flags]
+
+---
+
 ## 🔴 Critical Gaps — Immediate Action Required
 
 ### Missing Story Points ([n] tickets)
@@ -154,9 +172,11 @@ Compose the report in this format:
 
 ---
 
-## Decisions & Actions
+## SDM Action Plan
 
-> Prioritized for the SDM to assign before sprint execution begins.
+> Output from Step 6 — Prioritized for the SDM to assign before sprint execution begins.
+
+**Sprint Health Score Justification**: [Why 🔴/🟡/🟢 based on thresholds]
 
 1. **[Action]** — Owner: [suggested] — Impact: [what it unblocks]
 2. **[Action]** — Owner: [suggested] — Impact: [what it unblocks]
@@ -164,7 +184,7 @@ Compose the report in this format:
 4. **[Action]** — Owner: [suggested] — Impact: [what it unblocks]
 5. **[Action]** — Owner: [suggested] — Impact: [what it unblocks]
 
-**Capacity Note**: [n] unpointed tickets represent unknown effort. Sprint commitment accuracy is [low/moderate/high].
+**Capacity Impact**: [n] unpointed tickets represent unknown effort. Sprint commitment accuracy is [low/moderate/high]. [Note QA throughput risk if QA gap is high.]
 
 ---
 
