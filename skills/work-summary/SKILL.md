@@ -74,29 +74,38 @@ Extract: issues assigned, resolved, reported, severity breakdown, issue types.
 
 #### 1D. TestRail Activity
 
-Use TestRail API (base URL: `https://testrail.eero.amazon.dev`, credentials from environment or .zshrc `TESTRAIL_API_KEY`).
+Use TestRail API (base URL: `https://testrail.eero.amazon.dev`).
 
-**Test Cases Authored/Updated:**
+**Authentication:** The `TESTRAIL_TOKEN` env var in `.zshrc` is base64-encoded `user:apikey`. Decode it to extract credentials:
+```bash
+source ~/.zshrc
+DECODED=$(echo "$TESTRAIL_TOKEN" | base64 -d)
+TR_USER="${DECODED%%:*}"
+TR_KEY="${DECODED#*:}"
+# Use with: curl -s -u "$TR_USER:$TR_KEY" "$URL"
 ```
-GET /api/v2/get_cases/{project_id}&suite_id={suite_id}&updated_after={start_timestamp}&updated_by={user_id}
-```
-- Iterate all suites in project
-- Filter cases where `updated_on` falls within period
-- Count and categorize by suite/feature area
-
-**Test Executions:**
-```
-GET /api/v2/get_runs/{project_id}&created_after={start_timestamp}&created_before={end_timestamp}
-GET /api/v2/get_tests/{run_id}
-GET /api/v2/get_results/{test_id}
-```
-- For each run in period, check results where `created_by` matches user
-- Count total executions, unique test cases executed, breakdown by project/suite
 
 **User ID resolution:**
 ```
 GET /api/v2/get_user_by_email&email={testrail_email}
 ```
+Current user ID: 140
+
+**Test Cases Authored/Updated:**
+```
+GET /api/v2/get_cases/{project_id}&suite_id={suite_id}&updated_after={start_timestamp}&updated_by={user_id}
+```
+- Project ID: 2 (eero SW QA)
+- Key suites: Mobile (9), B2B Mobile (156), Mobile - ISP (27502), eero Insight legacy (19), Toaster (154)
+- Iterate all suites, filter cases where `updated_on` falls within period
+- Count and categorize by suite/feature area
+
+**Test Runs Created (manual executions):**
+```
+GET /api/v2/get_runs/{project_id}&created_after={start_timestamp}&created_before={end_timestamp}
+```
+- Filter runs where `created_by` matches user ID for manual execution count
+- Note: Automated pipeline executions are created by service accounts, not the user — count those as infrastructure contribution, not manual execution
 
 ### Phase 2: Interactive Curation
 
