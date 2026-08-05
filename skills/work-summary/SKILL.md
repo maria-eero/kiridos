@@ -34,17 +34,25 @@ Execute all data sources in parallel where possible.
 
 #### 1A. GitHub Activity (eero-inc org)
 
+**Note:** `gh` binary is at `/opt/homebrew/bin/gh` — ensure PATH includes it (`export PATH="/opt/homebrew/bin:$PATH"`). Auth is via keyring (account: `henrique-eero`).
+
 ```bash
+export PATH="/opt/homebrew/bin:$PATH"
+
 # Find all repos contributed to in period
 gh search commits --author={github_username} --owner=eero-inc --committer-date={start}..{end} --limit 100 --json repository | jq -r '[.[].repository.name] | unique | .[]'
 
-# For each repo, get PRs authored
-gh pr list --repo eero-inc/{repo} --author {github_username} --state merged --search "merged:{start}..{end}" --limit 100 --json number,title,body,mergedAt
+# For each repo, get PRs authored (merged in period)
+gh pr list --repo eero-inc/{repo} --author {github_username} --state merged --search "merged:{start}..{end}" --limit 100 --json number,title,mergedAt
 
-# PRs reviewed/commented on
-gh search prs --reviewed-by={github_username} --owner=eero-inc --merged={start}..{end} --limit 100 --json number,title,url,repository
-gh search prs --commenter={github_username} --owner=eero-inc --created={start}..{end} --limit 100 --json number,title,url,repository
+# PRs reviewed (by repo breakdown)
+gh search prs --reviewed-by={github_username} --owner=eero-inc --created={start}..{end} --limit 100 --json number,title,repository,url
+
+# Group reviewed PRs by repo for summary
+... | jq '[.[].repository.name] | group_by(.) | map({repo: .[0], count: length}) | sort_by(-.count)'
 ```
+
+**Tip:** `gh search commits` may return empty for recent dates if GitHub hasn't indexed them yet. Fall back to `gh pr list` per-repo for authored PRs.
 
 #### 1B. Amazon Code Browser Activity
 
@@ -57,20 +65,35 @@ Extract: code reviews shipped (count + details), packages contributed to.
 
 #### 1C. JIRA Activity
 
-Query using available JIRA tools (MCP JQL search or API with token from .zshrc):
+**Authentication:** Use `JIRA_API_TOKEN` from `.zshrc` with basic auth (`henrique@eero.com:$JIRA_API_TOKEN`).
 
+**API endpoint:** The `/rest/api/3/search` endpoint is deprecated. Use POST to `/rest/api/3/search/jql` instead:
+```bash
+source ~/.zshrc
+curl -s -X POST -u "henrique@eero.com:$JIRA_API_TOKEN" \
+  "https://eeroinc.atlassian.net/rest/api/3/search/jql" \
+  -H "Content-Type: application/json" \
+  -d '{"jql":"assignee=currentUser() AND updated >= \"{start}\" AND updated <= \"{end}\" ORDER BY priority ASC, updated DESC","maxResults":100,"fields":["key","summary","status","priority","issuetype"]}'
+```
+
+**Queries:**
 ```
 # Issues assigned and worked
-assignee = "{jira_name}" AND updated >= "{start}" AND updated <= "{end}" ORDER BY priority ASC, updated DESC
+assignee=currentUser() AND updated >= "{start}" AND updated <= "{end}" ORDER BY priority ASC, updated DESC
 
 # Issues resolved
-assignee = "{jira_name}" AND status IN ("Done", "Closed", "Resolved") AND updated >= "{start}" AND updated <= "{end}"
+assignee=currentUser() AND status IN ("Done", "Closed", "Resolved") AND updated >= "{start}" AND updated <= "{end}"
 
 # Issues reported/filed
-reporter = "{jira_name}" AND created >= "{start}" AND created <= "{end}" ORDER BY priority ASC, created DESC
+reporter=currentUser() AND created >= "{start}" AND created <= "{end}" ORDER BY priority ASC, created DESC
+
+# Bugs under a specific epic (for feature-level bug counts)
+project = {PROJECT} AND parent = {EPIC_KEY} AND issuetype = Bug ORDER BY priority ASC
 ```
 
-Extract: issues assigned, resolved, reported, severity breakdown, issue types.
+**Note:** Use `currentUser()` instead of display name — more reliable. The `total` field may return null in the new API; count `.issues` array length instead.
+
+Extract: issues assigned, resolved, reported, severity breakdown, issue types, bugs per project epic.
 
 #### 1D. TestRail Activity
 
@@ -136,12 +159,22 @@ Present the gathered data as a structured summary to the user:
 [Display any projects_context provided]
 ```
 
+Also gather project-specific bug data when the user provides epic links:
+```bash
+# Bugs under a feature epic — shows QA bug discovery impact
+curl -s -X POST -u "$AUTH" "$JIRA_URL/rest/api/3/search/jql" \
+  -H "Content-Type: application/json" \
+  -d '{"jql":"project = {PROJECT} AND parent = {EPIC_KEY} AND issuetype = Bug ORDER BY priority ASC","maxResults":50,"fields":["key","summary","status","priority"]}'
+```
+
 Then ask:
 
 > Here is the raw activity data I gathered. Before I draft your work summary:
-> 1. Are there any contributions or projects missing that you want included? (especially non-code work: process improvements, mentoring, cross-team initiatives, tooling)
+> 1. Are there any contributions or projects missing that you want included? (especially non-code work: process improvements, mentoring, cross-team initiatives, tooling, test plans written, release validation)
 > 2. Which contributions do you want me to emphasize as your top 3-4 highlights?
 > 3. Any specific quantified outcomes you want me to call out? (e.g., "reduced regression time by X%", "enabled Y feature to ship on schedule")
+> 4. Any JIRA epic links for features you tested? (to pull bug discovery data)
+> 5. Any cross-team work to highlight? (contributions outside your primary team scope)
 
 ### Phase 3: Draft Work Summary
 
@@ -189,6 +222,9 @@ Generate the work summary using the official template structure. Align contribut
 5. **Show, don't tell** — link to specific PRs, CRs, JIRA tickets, TestRail results
 6. **Leadership Principles** — tag naturally (Ownership, Deliver Results, Dive Deep, Earn Trust, etc.) without forcing
 7. **Role guideline alignment** — use language that maps to QAE II expectations (difficult scenarios, reusable solutions, process improvement, mentoring)
+8. **Accurate ownership claims** — only say "single-handedly" or "led" when the user actually did it alone. Do not imply ownership of decisions made by others (e.g., timeline decisions, deprecation approvals). Frame learnings about org decisions as "I should have advocated sooner" not "I should have decided sooner."
+9. **QAE ownership framing** — QAE owns quality and automation strategy. Developers *contribute* to automation, they don't *own* it. Frame developer enablement as QAE reviewing/guiding developer test PRs, not handing off ownership.
+10. **Open collab mode** — Always open the draft in document collaboration mode so the user can add inline comments for revision.
 
 ### Phase 4: Review and Refine
 
