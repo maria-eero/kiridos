@@ -238,10 +238,9 @@ Iterate until the user is satisfied.
 
 ### Phase 5: Final Output
 
-Save the final document to:
-```
-~/Projects/qae-skills/projects/work-summary/Work_Summary_H1_2026.md
-```
+Open the document in KiRoom collab mode for the user to review and iterate with inline comments.
+
+**NEVER commit or push work summary documents to git.** These are personal/confidential documents meant for talent review — they must not be stored in version control.
 
 Offer to copy to clipboard in plain text (no markdown formatting) for pasting into Google Docs.
 
