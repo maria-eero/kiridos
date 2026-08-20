@@ -29,6 +29,8 @@
 
 ## Mobile UX — Welcome Screen (new)
 
+> Figma screen exports for the full PAP sign-in / create-account / OTP-verify flow are cataloged in **[screens.md](./screens.md)** (`figma/`).
+
 The Welcome screen is restructured to three top-level entries (replacing the two-button layout + bottom-sheet pickers):
 
 | Button | Label | Routes to | Association handle |

@@ -42,5 +42,6 @@ The migration has two parts:
 | [processes.md](./processes.md) | Migration phases, rollout/rollback, release strategy, key decisions |
 | [team.md](./team.md) | Team members and roles |
 | [tickets.md](./tickets.md) | Jira initiative / epics / task breakdown |
+| [screens.md](./screens.md) | Figma screen reference (Welcome V2, PAP AuthPortal sign-in/create/verify flow) |
 | [open-questions.md](./open-questions.md) | Open questions and TBDs for team syncs |
 | [test-user-login-concerns.md](./test-user-login-concerns.md) | **QA blocker analysis** — how test users log in under PAP/MAP |
