@@ -2,6 +2,16 @@
 
 > This is the reason the test plan is on hold. It captures why authenticating test users is fundamentally different under PAP than under today's eero auth, what the docs say the intended approach is, and the open questions that must be answered before we can commit an automation strategy.
 
+> ## UPDATE (Jul 29, 2026 — PAP ↔ Amazon Identity Testing Guide) — devo is UNBLOCKED
+>
+> A cloud testing guide ([Confluence](https://eeroinc.atlassian.net/wiki/spaces/CLOUD/pages/5599264957/PAP+Amazon+Identity+Testing+Guide)) and Burak confirm `/2.3/login` sign-in works in **devo now**, and the APEX/MAP-token question is **no longer a hard prerequisite**:
+> - `/2.3/login` validates tokens via Aztec **`IsAuthorized`, which accepts both MAP tokens AND web `at-*` tokens.** We can mint a web `at-*` token through the devo AuthPortal sign-in flow (OTP `112233`) and use it directly — no APEX needed to start.
+> - **Debug admin routes** (`/debug/pap/create_account` with `create_user=true`, `set_email`, `set_mobile`, `verify_token`, `is_authorized`, `get_contact_info`) provision accounts + the eero `users` row. (These are the CORE-31962 routes.)
+> - **New constraints surfaced:** `set_mobile` is **blocked** (Identity limitation → email-only/EOA accounts only for now); `get_contact_info` UCI fields return empty (RED-cert/UCI allow-list pending); **stage** is blocked pending a working prod AuthPortal sign-in URL; `is_pro`/403 paths need an eph redeploy on `71859e3`.
+> - **New central challenge:** minting the `at-*` token is a manual browser+DevTools flow — automating it (headless Playwright driving AuthPortal + OTP `112233`, capturing HttpOnly `at-tacbus`/`ubid-tacbus` cookies) is now the linchpin, not APEX.
+>
+> API automation kickoff sent to the api-tests room (thread "PAP /2.3/login API automation"). Full flow and reference in [kamino-api-shadow-coordination.md](./kamino-api-shadow-coordination.md). The sections below remain the original analysis (MAP/APEX-centric); read them with this update in mind.
+
 ## TL;DR
 
 Under eero auth today, QA automation gets test users logged in by **retrieving the OTP via an admin API** and submitting it — fully headless. **Under PAP this no longer works.** Post-migration, login goes through Amazon AuthPortal and returns a **MAP token**, which the client exchanges at `POST /2.3/login`. There is **no headless OTP retrieval in prod/stage** (by design, for security). Getting a test user "logged in" now means obtaining a valid MAP token, and the only documented programmatic path for that in prod/stage is **Kamino + APEX device registration** — which is **not yet validated against the eero PAP marketplace**.
