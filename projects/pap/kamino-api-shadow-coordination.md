@@ -14,6 +14,21 @@ Everything below is gated on producing **one** valid MAP token for a Kamino eero
 2. **Kamino + APEX device registration:** the ADCMS/Alexa pattern — but unproven against a non-retail PAP marketplace.
 3. **Devo hardcoded OTP `112233`:** scriptable in devo if a registration sequence can be driven with a fixed code.
 
+## API automation status (Aug 21, 2026)
+
+Harness scaffolded in the api-tests room (thread "PAP /2.3/login API automation"). Decisions:
+- **Native `fetch`**, not the `eero api` CLI wrapper — matches repo convention and sidesteps the `+ / = |` quoting gotcha.
+- **Schemas match the guide:** error identifier is `meta.message` (not a top-level field); debug-route `meta` omits `server_time`.
+- **Playwright loaded on demand** (deliberately not in package.json/lockfile — adding it without a CodeArtifact-resolved entry breaks `npm ci`); helper errors with an install hint if missing.
+- `mint_at_token` supports password sign-in (stage account, `123123`) and OTP `112233` (devo forgot-password).
+
+**Runnable today (deterministic):** happy path, unknown-CID (`error.login.unknown`), malformed token (`external_token_invalid`).
+**Gated / TODO (not faked):** 503 Aztec-outage (needs fault injection); `is_pro=true` 403 paths (need eph redeploy on `71859e3`).
+
+**Blocking the first live devo run:** `PAP_EPH_HEADER` + `PAP_ADMIN_TOKEN` (TPI role) + target eph + exact devo api-user/api-admin base hosts. Once provided → `npm run test:pap` + one-time AuthPortal selector calibration for the first green happy-path.
+
+**Open questions raised to cloud/Identity** (see message sent to #proj-pap-eero-login): devo creds/hosts; non-browser token mint (or accept headless Playwright for CI); stage account email + is `123123` CI-safe; `71859e3` redeploy timeline; rate limits on `create_account`/AuthPortal; `set_mobile` unblock timeline (MOA/MCA); OK to prove `external_login_failed` by presenting a devo token to stage (only deterministic wrong-pool repro).
+
 ## Division of labor (proposed)
 
 | Area | Owner |
