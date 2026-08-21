@@ -25,7 +25,15 @@ Harness scaffolded in the api-tests room (thread "PAP /2.3/login API automation"
 **Runnable today (deterministic):** happy path, unknown-CID (`error.login.unknown`), malformed token (`external_token_invalid`).
 **Gated / TODO (not faked):** 503 Aztec-outage (needs fault injection); `is_pro=true` 403 paths (need eph redeploy on `71859e3`).
 
-**Blocking the first live devo run:** `PAP_EPH_HEADER` + `PAP_ADMIN_TOKEN` (TPI role) + target eph + exact devo api-user/api-admin base hosts. Once provided → `npm run test:pap` + one-time AuthPortal selector calibration for the first green happy-path.
+**STAGE-first (confirmed by Burak, Aug 21):** the happy path targets **stage**, which is simpler than the guide implied —
+- Base host `api-user.stage.e2ro.com` → `POST https://api-user.stage.e2ro.com/2.3/login`.
+- **No eph header** (persistent stage, not an eph).
+- **No admin token / no create_account for the happy path** — an existing stage PAP account is already provisioned (has its users row). Password `123123`; email is in Ricardi's #proj-pap-eero-login recording (to be supplied via env).
+- `mint_at_token` uses **password sign-in** at the stage AuthPortal (`ap.stage.payments.e2ro.com`, assoc handle `amzn_eero_mobile_dogfood_us`, marketplace `A10ZONQX51YR1E`) — deterministic, no OTP.
+- Henrique's `ADMIN_TOKEN` in `.zshrc` is a **stage** token (63 chars) — only needed for the provisioning-dependent scenarios via `/debug/pap/*`, not the happy path.
+- Env vars: `PAP_STAGE_BASE_URL=https://api-user.stage.e2ro.com`, `PAP_STAGE_EMAIL=<from recording>`, `PAP_STAGE_PASSWORD=123123`.
+
+**Only remaining value for the first green run:** the stage account email (from Ricardi's recording). Devo path (OTP 112233 + admin token + create_account) stays as a secondary parameterized config for unknown-CID etc., pending devo creds.
 
 **Open questions raised to cloud/Identity** (see message sent to #proj-pap-eero-login): devo creds/hosts; non-browser token mint (or accept headless Playwright for CI); stage account email + is `123123` CI-safe; `71859e3` redeploy timeline; rate limits on `create_account`/AuthPortal; `set_mobile` unblock timeline (MOA/MCA); OK to prove `external_login_failed` by presenting a devo token to stage (only deterministic wrong-pool repro).
 
