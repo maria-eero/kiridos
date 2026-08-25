@@ -45,5 +45,6 @@ The migration has two parts:
 | [screens.md](./screens.md) | Figma screen reference (Welcome V2, PAP AuthPortal sign-in/create/verify flow) |
 | [open-questions.md](./open-questions.md) | Open questions and TBDs for team syncs |
 | [test-user-login-concerns.md](./test-user-login-concerns.md) | **QA blocker analysis** — how test users log in under PAP/MAP |
+| [test-scenarios-rollout.md](./test-scenarios-rollout.md) | **Test scenario matrix** — reachable rollout states (version × flags × endpoint) → expected behavior; seed for the test plan |
 | [references/PAP-Migration-Mobile-Tech-Spec.md](./references/PAP-Migration-Mobile-Tech-Spec.md) | Local copy of the Mobile Tech Spec (Adauton Heringer) — source for architecture/product docs |
 | [references/PAP-Amazon-Identity-Testing-Guide.md](./references/PAP-Amazon-Identity-Testing-Guide.md) | PAP ↔ Amazon Identity testing guide |
