@@ -37,6 +37,24 @@ Harness scaffolded in the api-tests room (thread "PAP /2.3/login API automation"
 
 **Open questions raised to cloud/Identity** (see message sent to #proj-pap-eero-login): devo creds/hosts; non-browser token mint (or accept headless Playwright for CI); stage account email + is `123123` CI-safe; `71859e3` redeploy timeline; rate limits on `create_account`/AuthPortal; `set_mobile` unblock timeline (MOA/MCA); OK to prove `external_login_failed` by presenting a devo token to stage (only deterministic wrong-pool repro).
 
+## Test-account path: TipocaService (low-risk PAP accounts) — Aug 21
+
+The CVF blocker (hand-made stage account trips risk challenges on automated sign-in; repeated attempts permanently raised its risk) is solved by **TipocaService**, not Kamino. Findings from the Identity wikis (`IdentityServices/Services/TipocaService`; the "TestAccounts/Onboarding" page redirects here):
+
+- Tipoca **vends low-risk accounts that skip risk-based challenges (CVF) at sign-in** — exactly what automation needs.
+- It returns **email + name + password** → usable for automated AuthPortal password sign-in (headless browser now, on-device WebView later). Password is **not recoverable** — persist it at creation.
+- **Domain-free onboarding:** `BatchGenerateAccount` with `registeredDomainId="DOMAIN_FREE_CREATION"` (exact string), `useEmailAsClaim=true`, `marketplaceId=<A10ZONQX51YR1E for eeroStage>`, `accountLifetime` (burner: 30d default, 180d max), on client config `prod.USAmazon` (eeroStage = Identity prod fabric).
+- **Prereqs:** AAA relationship with TipocaService (calls are AAA-enforced); Coral packages `TipocaServiceJavaClient` + `TipocaServiceClientConfig`. No UI / no Explorer — programmatic Coral (Java/Ruby) only. Onboard via ticket (CTI: IdentityServices/TipocaService) or AuthRS Office Hours.
+- Kamino = wrapper over Tipoca that decorates accounts with address/payment/subscriptions; **not needed here** (we want vanilla email accounts).
+
+**Make-or-break validation:** does Tipoca accept the **custom PAP marketplace `A10ZONQX51YR1E`** (eeroStage)? All examples use retail marketplaces; the API takes an arbitrary `marketplaceId` but custom-PAP support is unproven (also the AbeBooks spike's open question).
+
+**Realistic path:** Tipoca is Java/Coral + AAA-gated and the API suite is JS → have **cloud run one `BatchGenerateAccount` for `A10ZONQX51YR1E`** and hand over email+password (accounts persist 30–180d), or grant eero's AAA app a Tipoca relationship so QA can call it. Then map the returned CID to an eero `users` row (reuse `/debug/pap create_user` or a "map existing CID" helper) so `/2.3/login` finds it.
+
+**Open questions:** (1) custom-PAP marketplace acceptance; (2) does low-risk also bypass the new-device gates (Not-Me/TIV) for CI/Device-Farm (fresh device each run), or do we need a device/IP allowlist; (3) burner lifetime vs CI cadence (regenerate/extend). Caveat: Tipoca prod accounts flow through real production systems — mind volume (InfoSec disclaimer).
+
+**Interim (no Tipoca needed):** unblock the headless API happy-path today via Playwright `storageState` — pass CVF manually once on the existing account, persist the recognized-device cookies, reuse headless. Does not cover Device Farm.
+
 ## Division of labor (proposed)
 
 | Area | Owner |
