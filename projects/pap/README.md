@@ -16,7 +16,7 @@ The migration has two parts:
 
 **Ready for Implementation** (HLD dated Jun 4, 2026; ERD dated Apr 17, 2026). Cloud passwordless work (CORE-28017) is In Execution. Mobile support (CORE-32410) and Insight/web (CORE-32858) are at Idea/Spike stage.
 
-> ⚠️ **QA note — test plan not yet started.** There is an open concern about how automated and manual test-user login will work under the new PAP/AuthPortal/MAP flow (headless OTP retrieval is no longer available). See **[test-user-login-concerns.md](./test-user-login-concerns.md)** before writing the test plan.
+> ⚠️ **QA note — test plan drafted (v1.0).** See **[PAP Migration Mobile Test Plan.md](./PAP%20Migration%20Mobile%20Test%20Plan.md)** (template v3.1) and the rollout-state matrix in **[test-scenarios-rollout.md](./test-scenarios-rollout.md)**. Automation of PAP-login flows remains gated on AuthPortal test-account access (CORE-32890); see **[test-user-login-concerns.md](./test-user-login-concerns.md)**.
 
 ## Key Links
 
@@ -46,5 +46,6 @@ The migration has two parts:
 | [open-questions.md](./open-questions.md) | Open questions and TBDs for team syncs |
 | [test-user-login-concerns.md](./test-user-login-concerns.md) | **QA blocker analysis** — how test users log in under PAP/MAP |
 | [test-scenarios-rollout.md](./test-scenarios-rollout.md) | **Test scenario matrix** — reachable rollout states (version × flags × endpoint) → expected behavior; seed for the test plan |
+| [PAP Migration Mobile Test Plan.md](./PAP%20Migration%20Mobile%20Test%20Plan.md) | **Mobile test plan** (template v3.1) — scope, environments, test data, strategy, scenarios (WEL/SIGN/UPG/CUT/RBK…), risks, sign-off |
 | [references/PAP-Migration-Mobile-Tech-Spec.md](./references/PAP-Migration-Mobile-Tech-Spec.md) | Local copy of the Mobile Tech Spec (Adauton Heringer) — source for architecture/product docs |
 | [references/PAP-Amazon-Identity-Testing-Guide.md](./references/PAP-Amazon-Identity-Testing-Guide.md) | PAP ↔ Amazon Identity testing guide |
