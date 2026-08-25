@@ -51,7 +51,13 @@ Replaces `/2.2/login`, `/2.2/register`, and `/2.2/pro/login`. Delivered by eero 
 | Header | `X-Client-Device-Id: <IDFV on iOS, app-scoped UUID on Android>` |
 | 200 | `{ "data": { "user_token": "…", "is_new_user": <bool> } }` — client stores `user_token`; `is_new_user` drives the marketing-consent fallback prompt. |
 
+The request body shape matches `/2.2/login/amazon` (`auth_token`, `create_account`), but **`/2.3/login` ignores `create_account`** (account creation is implicit on first PAP login); `/2.2/login/amazon` continues to consume it.
+
 The `/2.2/login/amazon` retail call is **preserved** — retail Amazon-login and legacy-welcome (`feature_203=false`) clients continue to use it. Both endpoints coexist during rollout.
+
+**Client wiring (mobile):**
+- **Android:** new `IUserService.papLogin` Retrofit method (`@POST("2.3/login")`, `auth_token` field) + `UserService.papLogin` wrapper. `IUserService.amazonLogin` (`/2.2/login/amazon`) unchanged.
+- **iOS:** new `EeroAPIRoute.papLogin` (`path: "/2.3/login"`) + a `postDecodable` helper posting `["auth_token": mapToken]`. `EeroAPIRoute.loginAmazon` unchanged.
 
 ### Identity APIs (external)
 
@@ -87,8 +93,29 @@ Two independent, version-gated flags read from the unauthenticated `GET /2.2/app
 | `feature_204` | `forceAppUpgradeToUsePap` (was `AuthXLoginFeatureToggle`) | moved `26.12.0` → `26.10.0` | 26.10/26.11 clients show `UpdateRequiredFragment` (Android) / `ErrorViewController` (iOS) before credential entry |
 
 - `feature_203` gains `X-Client-Device-Id` bucketing (base class → `AppVersionAndDeviceIdDependentFeatureFlag`) for percentage rollout via `HASH_SHARD` throttle.
-- JSON field names (`"feature_203"`, `"feature_204"`) are unchanged on the wire; renames are code-level in 26.12+.
+- JSON field names (`"feature_203"`, `"feature_204"`) are unchanged on the wire; renames are code-level in 26.12+. 26.10/26.11 shipped with the old accessor names and still receive `"feature_204"` — wire format unchanged, so their behavior is preserved.
 - Server-side kill switches: `eeroAuthLoginDisabled` (→ `/2.2/login` + `/2.2/pro/login` return 404) and `eeroAuthRegistrationDisabled` (→ `/2.2/register` returns 404). Error: `error.login.upgrade_required`.
+- **Two-flag design rationale:** the flags are independent so the *feature* rollout (`feature_203`) is isolated from the *cutover* trigger (`feature_204`). Any intermediate version shipping a partial PAP implementation never enrolls in `feature_203` (min-version can be raised) and follows the existing eero-auth path until `feature_204` fires the update prompt — which is why the two concerns are not combined onto one flag.
+
+## Rollout Timeline & Rollback
+
+The two flags activate at different phases. QA validation must cover behavior across app-version bands (26.10/26.11 vs 26.12+) and flag states.
+
+**Rollout (5 steps):**
+
+1. **Ship 26.12** with full `feature_203` client wiring (`WelcomeFragmentV2` / `WelcomeViewV2`), the PAP flow, and the `/2.3/login` endpoint migration. Both flags default **off** server-side.
+2. **Phased PAP rollout.** Ramp the `feature_203` device-ID throttle `5% → 25% → 50% → 100%`. Only PAP-complete clients enroll (via `papLoginRequiredCapable`). Watch PAP token exchange, `/2.3/login` success rate, and sign-in completion.
+   - Unenrolled 26.12+ users stay on the existing welcome + eero-auth path.
+   - 26.10/26.11 users stay on the existing path (below min-version, so `feature_203` is invisible).
+   - Legacy endpoints keep serving traffic.
+3. **Activate `forceAppUpgradeToUsePap`** for pre-PAP clients once `feature_203` is at 100% and metrics are healthy. Enable `feature_204` (`enabledForPublic = true` or throttle → 100%). Because min-version moved to `26.10.0`, 26.10/26.11 clients qualify with no DKV override → they see `UpdateRequiredFragment` (Android) / `ErrorViewController` (iOS) before credential entry. 26.12+ users are on the new welcome + PAP and never reach the check.
+4. **Wait for install-base decay** on 26.10/26.11 as users update.
+5. **Cut over legacy endpoints.** Flip `eeroAuthLoginDisabled` + `eeroAuthRegistrationDisabled` DKVs → `/2.2/login*` and `/2.2/register*` return 404. Any remaining 26.10/26.11 user who ignored the update prompt hits the raw 404 as the last-resort backstop.
+
+**Rollback (independent per flag):**
+
+- **PAP issues during ramp:** drop the `feature_203` device-ID throttle to `0%`. 26.12+ users fall back to the existing welcome + eero-auth. `feature_204` unaffected; no user stranded because legacy endpoints are still live.
+- **`forceAppUpgradeToUsePap` fires prematurely:** disable the flag (`enabledForPublic = false` or throttle → `0%`). 26.10/26.11 users stop seeing the update prompt on their next `app_configuration` refresh.
 
 ## Components
 
@@ -120,7 +147,8 @@ Two new nullable columns on the `users` table:
 
 ## References
 
-- [Mobile Tech Spec](https://docs.google.com/document/d/1yZ3M5ze90yTmJ3I15H0F2co84VP6EloHuWBLNR28zrg/edit)
+- [Mobile Tech Spec (local copy)](./references/PAP-Migration-Mobile-Tech-Spec.md) — author: Adauton Heringer
+- [Mobile Tech Spec (Google Doc)](https://docs.google.com/document/d/1yZ3M5ze90yTmJ3I15H0F2co84VP6EloHuWBLNR28zrg/edit)
 - [Cloud HLD](https://docs.google.com/document/d/1tllKzECjAGPHwXNzsTnGXMsy8FusrG1WC98eSnV4pis/edit)
 - [ERD](https://docs.google.com/document/d/1mGoR0uoGjoKeqOD5w3BS-kvnyluwjPMsI-qC91rXLUQ/edit)
 - CR-297076250 — [MAPiOSLib] Allowlist eero PAP AuthPortal domains

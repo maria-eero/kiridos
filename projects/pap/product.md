@@ -39,8 +39,9 @@ The Welcome screen is restructured to three top-level entries (replacing the two
 | Primary | Amazon sign-in | Existing retail Amazon-login | `amzn_eero_mobile_android_us` |
 | Secondary | Email or phone number | **New PAP flow** | `amzn_eero_mobile_us` |
 
-- **Android:** new `WelcomeFragmentV2` alongside `WelcomeFragment`; routed by `V3OnboardingActivity.checkExtrasAndRoute()` on `feature_203`. Old bottom-sheet pickers deleted at 100% rollout.
-- **iOS:** existing SwiftUI + TCA `Welcome.swift`; only the bottom CTA region swaps (`signInOptions` replaces `ctaButtons`), Technicians moves to a top-bar item. Flag read as shared state so the toggle takes effect without relaunch. `WelcomeActionSheetViewController` removed at 100%.
+- **Android:** new `WelcomeFragmentV2` alongside `WelcomeFragment`; routed by `V3OnboardingActivity.checkExtrasAndRoute()` on `feature_203`. Interactions: Technicians → `SsoOtherPartnerFragment`; Amazon sign-in → `SignInWithAmazonFragment` (existing retail handle); Email or phone → `SignInWithEeroWebFragment` (`amzn_eero_mobile_us`). Old bottom-sheet pickers (`SetupBottomSheetDialogFragment`, `SignInBottomSheetDialogFragment`) deleted at 100% rollout.
+- **iOS:** existing SwiftUI + TCA `Welcome.swift`; only the bottom CTA region swaps (`signInOptions` replaces `ctaButtons`), Technicians moves to a top-bar item, plus an account-linking footnote below the buttons. Interactions: Technicians → `SSOCoordinator`; Amazon sign-in → `AmazonLoginCoordinator` (retail handle); Email or phone → `AmazonLoginCoordinator.privateAccountPool(loginSessionID:)`. Flag read as shared state so the toggle takes effect without relaunch. `WelcomeActionSheetViewController` removed at 100%.
+- **Analytics:** each entry tracks `LoginAnalyticsEvents.StartedLogin` with the authentication type (`amazonSignIn` / `emailOrPhoneSignIn` / `technicianSignIn`).
 
 ## UnifiedCX vs Separate Sign-Up/Sign-In
 
@@ -73,6 +74,7 @@ Regardless of option, the migration is **never fully complete** because partners
 
 ## References
 
-- [Mobile Tech Spec](https://docs.google.com/document/d/1yZ3M5ze90yTmJ3I15H0F2co84VP6EloHuWBLNR28zrg/edit)
+- [Mobile Tech Spec (local copy)](./references/PAP-Migration-Mobile-Tech-Spec.md) — author: Adauton Heringer
+- [Mobile Tech Spec (Google Doc)](https://docs.google.com/document/d/1yZ3M5ze90yTmJ3I15H0F2co84VP6EloHuWBLNR28zrg/edit)
 - [ERD](https://docs.google.com/document/d/1mGoR0uoGjoKeqOD5w3BS-kvnyluwjPMsI-qC91rXLUQ/edit)
 - [SSO Figma](https://www.figma.com/design/WjOfX2phnwdS2Go0iPDNSY/SSO?node-id=738-1863)
