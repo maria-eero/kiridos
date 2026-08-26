@@ -37,6 +37,18 @@ curl -X POST \
 - Status meaning: **401** = token not recognized as admin; **403** = valid admin but missing TPI role; **200** = success.
 - Form values containing `+ / = @` are URL-encoded automatically by `curl --data-urlencode` (fine). The `eero api` CLI wrapper's `%2B`-doesn't-work gotcha does **not** apply to raw curl.
 
+## Sign-in challenge is device/IP-risk-based (verified Aug 26, 2026)
+
+The AuthPortal sign-in risk challenge (OTP / "are you human" CAPTCHA / CVF) is **risk-based on device + IP**, not on cookies:
+
+- From **Henrique's own device/IP**, sign-in is **clean** — no OTP, no CAPTCHA. This held even in an **incognito** window (clean cookie jar) because the device fingerprint + IP are still the same trusted context. That's why the earlier "recognized-device cookies" theory was wrong — it's device/IP reputation, not the cookie jar.
+- From **another device**, the **"are you human" challenge appeared**.
+
+**Implications for automation:**
+- **Local automation on the trusted device/IP** (Henrique's machine / corp network) can sign in **cleanly** — no OTP, no CAPTCHA. Viable today.
+- **CI / AWS Device Farm** (different device + IP each run) **will hit the challenge** → still needs **low-risk accounts (Tipoca)** or a **device/IP allowlist**. This is the concrete reason the Device-Farm path can't just reuse a normal account.
+- Whether email+password vs OTP is moot for the trusted-device case — the trusted context isn't challenged at all.
+
 ## What this does NOT solve
 
 - These are **normal-risk** accounts → automated/headless or fresh-device sign-in can hit **CVF**, and AWS Device Farm (a new device each run) trips CVF + new-device gates (Not-Me/TIV). For CVF-free **programmatic** sign-in at scale you need **low-risk accounts (TipocaService)** in the PAP — pending validation that Tipoca supports marketplace `A10ZONQX51YR1E`. See [kamino-api-shadow-coordination.md](./kamino-api-shadow-coordination.md).
