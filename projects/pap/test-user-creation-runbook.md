@@ -37,6 +37,28 @@ curl -X POST \
 - Status meaning: **401** = token not recognized as admin; **403** = valid admin but missing TPI role; **200** = success.
 - Form values containing `+ / = @` are URL-encoded automatically by `curl --data-urlencode` (fine). The `eero api` CLI wrapper's `%2B`-doesn't-work gotcha does **not** apply to raw curl.
 
+## OTP & test-account strategy — confirmed by Identity (Mitch Lee, Aug 26, 2026)
+
+Authoritative answers from the AuthX/Identity team:
+
+- **OTP cannot be fetched programmatically in Identity systems.** In Identity **PROD** (which is where the eero **stage + prod** PAPs live) there is **no way to retrieve an OTP** — security by design. Only a real email/phone inbox receives it.
+- **Magic OTP codes work only in Identity BETA:** `112233` (SMS) and `332211` (WhatsApp). eero has **3 PAPs**:
+  - **Devo** → Identity **Beta** env → **magic code `112233` works.**
+  - **Stage + Prod** → Identity **Prod** env → **no magic code, no OTP retrieval.**
+- **Tipoca does NOT retrieve OTP.** It *creates accounts* (EOA/MOA/MCA, typically **claim + password**) that **skip risk-detection challenges** (the device/IP "are you human" / CVF). So Tipoca = password login with **no human challenge, from any device/IP** — the Device-Farm unlock — but requires **your own Tipoca onboarding for the eero PAP**. Can combine with AuthService calls to attach 2SV, etc.
+- Identity's own suites mostly use **hard-coded accounts** created over time; beta uses the magic code; gamma/prod use hard-coded accounts + passkey.
+- **Reference tooling:** Mitch Lee's [`authx-tipoca-mcp-server`](https://code.amazon.com/packages/AuthXUITestingNpmModules/trees/mainline/--/packages/authx-tipoca-mcp-server) — an MCP server that generates Tipoca accounts; pairs with `playwright-mcp` so an AI generates an account and logs in to test. Good template for our own Tipoca calls (after PAP onboarding).
+
+### Resolved automation strategy
+
+| Target | Env | OTP retrievable? | Automation login path |
+|--------|-----|------------------|-----------------------|
+| eero **Devo** PAP | Identity Beta | **Yes** — magic `112233` / `332211` | Magic-code OTP login (fully programmatic; needs devo access/hosts) |
+| eero **Stage** PAP | Identity Prod | No | (a) **Tipoca** low-risk account → password login, skips challenge, works on any device incl. **Device Farm** (needs PAP onboarding); (b) **hard-coded account on the trusted device/IP** — works **today**, local only |
+| eero **Prod** PAP | Identity Prod | No | Tipoca / hard-coded + passkey |
+
+**Bottom line:** there is no OTP-retrieval shortcut for stage. For fully-programmatic stage/Device-Farm login the path is **Tipoca low-risk accounts** (skip the challenge, password sign-in) — pending Tipoca onboarding for the eero PAP. For **devo**, the magic code makes OTP login trivial. Local automation on the trusted device/IP already works with hard-coded accounts.
+
 ## Sign-in challenge is device/IP-risk-based (verified Aug 26, 2026)
 
 The AuthPortal sign-in risk challenge (OTP / "are you human" CAPTCHA / CVF) is **risk-based on device + IP**, not on cookies:
