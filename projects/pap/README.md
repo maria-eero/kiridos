@@ -45,6 +45,7 @@ The migration has two parts:
 | [screens.md](./screens.md) | Figma screen reference (Welcome V2, PAP AuthPortal sign-in/create/verify flow) |
 | [open-questions.md](./open-questions.md) | Open questions and TBDs for team syncs |
 | [test-user-login-concerns.md](./test-user-login-concerns.md) | **QA blocker analysis** — how test users log in under PAP/MAP |
+| [test-user-creation-runbook.md](./test-user-creation-runbook.md) | **Self-service runbook** — create PAP test users in stage via `X-Admin-Token` (TPI role); auth gotchas, sign-in, limits |
 | [test-scenarios-rollout.md](./test-scenarios-rollout.md) | **Test scenario matrix** — reachable rollout states (version × flags × endpoint) → expected behavior; seed for the test plan |
 | [PAP Migration Mobile Test Plan.md](./PAP%20Migration%20Mobile%20Test%20Plan.md) | **Mobile test plan** (template v3.1) — scope, environments, test data, strategy, scenarios (WEL/SIGN/UPG/CUT/RBK…), risks, sign-off |
 | [references/PAP-Migration-Mobile-Tech-Spec.md](./references/PAP-Migration-Mobile-Tech-Spec.md) | Local copy of the Mobile Tech Spec (Adauton Heringer) — source for architecture/product docs |
